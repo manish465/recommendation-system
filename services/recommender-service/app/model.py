@@ -4,12 +4,19 @@ from lightfm import LightFM
 from lightfm.data import Dataset
 from scipy.sparse import coo_matrix
 import joblib
+import redis
+import json
+
+# Connect to Redis
+r = redis.Redis(host="redis", port=6379, db=0)
+
+BATCH_SIZE = 100  # update after 100 events
 
 MODEL_PATH = "app/artifacts/model.pkl"
 USER_MAP_PATH = "app/artifacts/user_mapping.pkl"
 ITEM_MAP_PATH = "app/artifacts/item_mapping.pkl"
 
-def train_model(interactions_csv, user_features_csv=None, item_features_csv=None):
+def train_model(interactions_csv):
     # Load base interaction data
     df = pd.read_csv(interactions_csv)
     dataset = Dataset()
@@ -48,13 +55,29 @@ def recommend(user_id, k=5):
     top_items = np.argsort(-scores)[:k]
     return [items[i] for i in top_items]
 
-def update_model_incremental(feedback):
-    """feedback is a list of (user_id, item_id) tuples"""
-    model = joblib.load(MODEL_PATH)
-    users, items = zip(*feedback)
+def update_model_incremental(user_id, item_id, rating=1.0):
+    r.rpush("feedback_buffer", json.dumps({"user": user_id, "item": item_id}))
     
-    data = coo_matrix((np.ones(len(users)), (users, items)))
-    model.fit_partial(data)
+    # If enough feedback accumulated, process batch
+    if r.llen("feedback_buffer") >= BATCH_SIZE:
+        process_batch()
+
+def process_batch(batch):
+    batch = []
+    for _ in range(BATCH_SIZE):
+        item = r.lpop("feedback_buffer")
+        if item:
+            data = json.loads(item)
+            batch.append((data["user"], data["item"]))
     
-    joblib.dump(model, MODEL_PATH)
-    print("Incrementally updated model with", len(feedback), "samples.")
+    if batch:
+        # Load model
+        model = joblib.load(MODEL_PATH)
+        users, items = zip(*batch)
+        
+        data = coo_matrix((np.ones(len(users)), (users, items)))
+        
+        model.fit_partial(data)
+        
+        joblib.dump(model, MODEL_PATH)
+        print(f"Updated model with {len(batch)} new feedback events")

@@ -1,7 +1,8 @@
 from confluent_kafka import Consumer, KafkaException
 from app.model import update_model_incremental
+import json
 
-def start_consumer(batch_size=100):
+def consume_feedback():
     conf = {
         'bootstrap.servers': 'kafka:9092',
         'group.id': 'recommender-group',
@@ -11,7 +12,6 @@ def start_consumer(batch_size=100):
     consumer = Consumer(conf)
     consumer.subscribe(['feedback-events'])
     
-    buffer = []
     print("Listening for feedback...")
     
     try:
@@ -22,13 +22,9 @@ def start_consumer(batch_size=100):
             if msg.error():
                 raise KafkaException(msg.error())
             
-            user_id, item_id = msg.value().decode().split(',')
-            buffer.append((int(user_id), int(item_id)))
-            
-            if len(buffer) >= batch_size:
-                print(f"Processing {len(buffer)} feedback events...")
-                update_model_incremental(buffer)
-                buffer.clear()
+            event = json.loads(msg.value().decode('utf-8'))
+            user_id, item_id, rating = event["userId"], event["itemId"], event["rating"]
+            update_model_incremental(user_id, item_id, rating)
 
     
     except KeyboardInterrupt:

@@ -1,5 +1,6 @@
 package com.manish.project.userservice.controller;
 
+import com.manish.project.userservice.model.FeedbackEvent;
 import com.manish.project.userservice.model.Product;
 import com.manish.project.userservice.producer.FeedbackProducer;
 import com.manish.project.userservice.service.RecommendationService;
@@ -29,9 +30,10 @@ public class UserController {
     @PostMapping("/{userId}/feedback")
     public ResponseEntity<String> sendFeedback(
             @PathVariable Long userId,
-            @RequestParam Long itemId) {
-
-        feedbackProducer.sendFeedback(userId, itemId);
+            @RequestParam Long itemId,
+            @RequestParam(defaultValue = "1.0") double rating
+    ) {
+        feedbackProducer.sendFeedback(new FeedbackEvent(userId, itemId, rating));
         return ResponseEntity.ok("Feedback sent to RecommenderService");
     }
 
