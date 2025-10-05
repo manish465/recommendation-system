@@ -1,0 +1,17 @@
+server:
+  port: 8080
+
+spring:
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+
+recommender:
+  api:
+    url: ${RECOMMENDER_API_URL:http://localhost:8000}
+
+logging:
+  level:
+    org.springframework.data.redis: DEBUG
+    io.lettuce.core: DEBUG

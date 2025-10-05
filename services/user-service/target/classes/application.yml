@@ -1,0 +1,6 @@
+server:
+  port: 8080
+
+recommender:
+  api:
+    url: ${RECOMMENDER_API_URL:http://localhost:8000}

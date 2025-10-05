@@ -1,0 +1,49 @@
+version: "3.8"
+name: "RecommendationMS"
+
+services:
+  recommender-service:
+    build:
+      context: ./services/recommender-service
+      dockerfile: Dockerfile
+    container_name: recommender-service
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    depends_on:
+      recommender-service:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      - RECOMMENDER_API_URL=http://recommender-service:8000
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,5 @@
+com\manish\project\userservice\App.class
+com\manish\project\userservice\config\AppConfig.class
+com\manish\project\userservice\controller\UserController.class
+com\manish\project\userservice\model\Product.class
+com\manish\project\userservice\service\RecommendationService.class
