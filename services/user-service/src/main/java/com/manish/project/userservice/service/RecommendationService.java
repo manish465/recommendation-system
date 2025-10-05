@@ -6,8 +6,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -38,5 +37,19 @@ public class RecommendationService {
 
         System.out.println("Cache MISS for user " + userId + " with k: " + k);
         return recommendations;
+    }
+
+    public void sendFeedback(Long userId, Long itemId) {
+        String url = recommenderApiUrl + "/feedback";
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("user_id", userId);
+        payload.put("item_id", itemId);
+
+        restTemplate.postForObject(url, payload, Void.class);
+    }
+
+    public void triggerRetraining() {
+        String url = recommenderApiUrl + "/train";
+        restTemplate.postForObject(url, null, Void.class);
     }
 }

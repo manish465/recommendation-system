@@ -3,6 +3,7 @@ package com.manish.project.userservice.controller;
 import com.manish.project.userservice.model.Product;
 import com.manish.project.userservice.service.RecommendationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,5 +22,20 @@ public class UserController {
         return productIds.stream()
                 .map(pid -> new Product(pid, "Product-" + pid, "Demo product"))
                 .collect(Collectors.toList());
+    }
+
+    @PostMapping("/{userId}/feedback")
+    public ResponseEntity<String> sendFeedback(
+            @PathVariable Long userId,
+            @RequestParam Long itemId) {
+
+        recommendationService.sendFeedback(userId, itemId);
+        return ResponseEntity.ok("Feedback sent to RecommenderService");
+    }
+
+    @PostMapping("/retrain")
+    public ResponseEntity<String> retrainModel() {
+        recommendationService.triggerRetraining();
+        return ResponseEntity.ok("Retraining triggered");
     }
 }

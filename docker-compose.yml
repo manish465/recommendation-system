@@ -11,6 +11,8 @@ services:
       - "8000:8000"
     networks:
       - app-network
+    volumes:
+      - ./services/recommender-service/app/data:/app/app/data
 
   user-service:
     build:
