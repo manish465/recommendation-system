@@ -7,3 +7,4 @@ lightfm
 joblib
 apscheduler
 confluent-kafka
+redis

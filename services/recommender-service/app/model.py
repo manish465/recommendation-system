@@ -62,7 +62,7 @@ def update_model_incremental(user_id, item_id, rating=1.0):
     if r.llen("feedback_buffer") >= BATCH_SIZE:
         process_batch()
 
-def process_batch(batch):
+def process_batch():
     batch = []
     for _ in range(BATCH_SIZE):
         item = r.lpop("feedback_buffer")
