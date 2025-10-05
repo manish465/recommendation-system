@@ -24,7 +24,7 @@ public class RecommendationService {
         // Check cache
         List<Integer> cached = (List<Integer>) redisTemplate.opsForValue().get(cacheKey);
         if (cached != null) {
-            System.out.println("Cache HIT for user " + userId);
+            System.out.println("Cache HIT for user " + userId + " with k: " + k);
             return cached;
         }
 
@@ -36,7 +36,7 @@ public class RecommendationService {
         // Cache for 1 hour
         redisTemplate.opsForValue().set(cacheKey, recommendations, 1, TimeUnit.HOURS);
 
-        System.out.println("Cache MISS for user " + userId);
+        System.out.println("Cache MISS for user " + userId + " with k: " + k);
         return recommendations;
     }
 }
