@@ -1,6 +1,7 @@
 package com.manish.project.userservice.controller;
 
 import com.manish.project.userservice.model.Product;
+import com.manish.project.userservice.producer.FeedbackProducer;
 import com.manish.project.userservice.service.RecommendationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserController {
     private final RecommendationService recommendationService;
+    private final FeedbackProducer feedbackProducer;
 
     @GetMapping("/{id}/recommendations")
     public List<Product> getUserRecommendations(@PathVariable int id,
@@ -29,7 +31,7 @@ public class UserController {
             @PathVariable Long userId,
             @RequestParam Long itemId) {
 
-        recommendationService.sendFeedback(userId, itemId);
+        feedbackProducer.sendFeedback(userId, itemId);
         return ResponseEntity.ok("Feedback sent to RecommenderService");
     }
 

@@ -1,9 +1,25 @@
 from fastapi import FastAPI, Query, Body
-from app.model import train_model, recommend
-import datetime
+from contextlib import asynccontextmanager
 import pandas as pd
+import threading
+
+from app.model import train_model, recommend
+from app.consumer import start_consumer
 
 app = FastAPI(title="Recommender Service")
+
+def process_feedback(user_id, item_id):
+    # Store feedback in CSV or DB for retraining
+    print(f"Received feedback: user={user_id}, item={item_id}")
+    # append to file
+    with open("app/data/interactions.csv", "a") as f:
+        f.write(f"{user_id},{item_id}\n")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    threading.Thread(target=start_consumer, args=(process_feedback,), daemon=True).start()
+    yield
+    pass
 
 @app.post("/train")
 def train(interactions: list[dict] = Body(None)):

@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from lightfm import LightFM
 from lightfm.data import Dataset
+from scipy.sparse import coo_matrix
 import joblib
 
 MODEL_PATH = "app/artifacts/model.pkl"
@@ -46,3 +47,14 @@ def recommend(user_id, k=5):
     scores = model.predict(user_index, np.arange(len(items)))
     top_items = np.argsort(-scores)[:k]
     return [items[i] for i in top_items]
+
+def update_model_incremental(feedback):
+    """feedback is a list of (user_id, item_id) tuples"""
+    model = joblib.load(MODEL_PATH)
+    users, items = zip(*feedback)
+    
+    data = coo_matrix((np.ones(len(users)), (users, items)))
+    model.fit_partial(data)
+    
+    joblib.dump(model, MODEL_PATH)
+    print("Incrementally updated model with", len(feedback), "samples.")
